@@ -1,0 +1,164 @@
+<html>
+
+<head>
+    <title>Simple Map</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+    <script
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDR9ipaHpW97LzXTaRvPI5cMQH1VfUP2nY&region=TW&language=ch&callback=initMap&libraries=&v=weekly"
+        defer></script>
+    <style type="text/css">
+        /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+        #map {
+            height: 100%;
+        }
+
+        /* Optional: Makes the sample page fill the window. */
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        nav {
+            width: 100%;
+            background-color: cornflowerblue;
+
+        }
+
+        nav p {
+            color: rgb(35, 53, 88);
+        }
+
+        .container {
+            display: flex;
+            margin: auto 50px auto 50px;
+        }
+
+        button {
+            height: 50px;
+            font-size: 24px;
+            margin: auto;
+            padding: 10px 5px;
+            border: none;
+            color: floralwhite;
+            background-color: rgb(35, 53, 88);
+        }
+
+        .item {
+            margin: 5px 25px 25px;
+            font-size: 24px;
+        }
+
+        select {
+            display: inline-block;
+            margin: auto;
+        }
+    </style>
+    <!-- <a href="http://www.onlinewebfonts.com">oNline Web Fonts</a> -->
+
+</head>
+
+<body>
+    <nav id="city-guide">
+
+        <div class="container">
+
+            <div id="title">
+                <h1>臺灣觀光景點地圖</h1>
+            </div>
+
+            <div class="item" id="selector">
+                <select name="selector" id="region-select">
+                    <option value="" selected>依照縣市</option>
+                </select>
+            </div>
+            <div class="item" id="selector">
+                <select name="selector" id="town-select" disabled="disabled">
+                    <option value="" selected>依照行政區</option>
+                </select>
+            </div>
+            <button id="map-region-showall">顯示全部</button>
+        </div>
+    </nav>
+
+
+    <div id="map"></div>
+    <!--original google map-->
+    <script>
+        let mapArray = [];
+        var markers = [];
+        window.onload = function () {
+            getAttractionsJSON();
+        };
+
+        function getAttractionsJSON() {
+            let xhr = new XMLHttpRequest();
+            xhr.onload = function () {
+                let mapJSONArray = JSON.parse(this.responseText);
+                //取得子節點Info中的陣列資料:
+                mapArray = mapJSONArray.XML_Head.Infos.Info;
+
+                for (var i in mapArray) {
+                    let innerJSON = {
+                        Id: mapArray[i].Id,
+                        Name: mapArray[i].Name,
+                        Region: mapArray[i].Region,
+                        Town: mapArray[i].Town,
+                        Address: mapArray[i].Add,
+                        Telephone: mapArray[i].Tel,
+                        lat: mapArray[i].Px,
+                        lng: mapArray[i].Py,
+                        Description: mapArray[i].Description
+                    };
+                    mapArray[i] = innerJSON;
+                }
+                initMap();
+                //console.log(mapArray);
+            };
+            xhr.open(
+                "GET",
+                "https://bsopendata.azurewebsites.net/api/LeisureTravel/Attractions"
+            );
+            xhr.send();
+        }
+
+        function CreateMapPin(x, y, map) {
+            //console.log(x, y, map);
+            //新增自訂義圖釘
+            var marker = new google.maps.Marker({
+                position: { lat: x, lng: y },
+                //icon: "./mappin.png",
+                map: map,
+                //draggable: true,
+            });
+            markers.push(marker);
+        }
+
+        function initMap() {
+            //OriginMapPoint
+            //const myLatLng = { lat: 25.0415956, lng: 121.5341098 };
+            var map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 12,
+                center: { lat: 25.0415956, lng: 121.5341098 },
+            });
+            //CreateMapPin(25.2, 121.5, map);
+            //CreateMapPin(25.1, 121.5, map);
+            //console.log(mapArray)
+            mapArray.forEach(item => {
+                //console.log(item)
+                CreateMapPin(item.lng, item.lat, map);
+            })
+        }
+    </script>
+    <!-- Google Map 顯示部分 -->
+    <script src="./MyMap.js"></script>
+
+
+
+    <!-- <div>Icon made from <a href="http://www.onlinewebfonts.com/icon">Icon Fonts</a> is licensed by CC BY 3.0</div> -->
+
+</body>
+
+</html>
